@@ -956,7 +956,7 @@ class RedisKeyDict(RedisItem):
             redisItemClass = RedisInteger
         elif isinstance(value, list):
             redisItemClass = RedisList
-        elif isinstance(value, object)
+        elif isinstance(value, object) \
             and "sortedset" in value.__class__.__name__.lower():
             redisItemClass = RedisSortedSet
         elif isinstance(value, set):
