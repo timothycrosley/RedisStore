@@ -13,8 +13,20 @@ import types
 
 import redis
 
-from IteratorUtils import SortedSet
-from StringUtils import listReplace
+def listReplace(inString, listOfItems, replacement):
+    """ Replaces instaces of items withing listOfItems with replacement:
+           inString - the string to do replacements on
+           listOfItems - a list of strings to replace
+           replacement - what to replace it with (or a list of replacements the same lenght as the list of items)
+    """
+    isStringReplace = type(replacement) in types.StringTypes
+    for item in listOfItems:
+        if isStringReplace:
+            inString = inString.replace(item, replacement)
+        else:
+            inString = inString.replace(item, replacement[listOfItems.index(item)])
+
+    return inString
 
 REDIS_NUM_DBS = int(os.environ.get("REDIS_NUM_DBS", "1"))
 
@@ -944,7 +956,8 @@ class RedisKeyDict(RedisItem):
             redisItemClass = RedisInteger
         elif isinstance(value, list):
             redisItemClass = RedisList
-        elif isinstance(value, SortedSet):
+        elif isinstance(value, object)
+            and "sortedset" in value.__class__.__name__.lower():
             redisItemClass = RedisSortedSet
         elif isinstance(value, set):
             redisItemClass = RedisSet
