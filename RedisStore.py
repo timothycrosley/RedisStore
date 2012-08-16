@@ -13,11 +13,10 @@ import types
 
 import redis
 
-from config import cfgDict
 from IteratorUtils import SortedSet
 from StringUtils import listReplace
 
-REDIS_NUM_DBS = 1
+REDIS_NUM_DBS = int(os.environ.get("REDIS_NUM_DBS", "1"))
 
 class Redis(redis.Redis):
     def reconnect(self):
@@ -180,31 +179,14 @@ def cacheIntForever(func):
     return cache(func, RedisInteger, FOREVER_CACHE_TIME)
 
 dbNum = 0
-if not os.environ["USER"].startswith("at"):
-    class RegularRedis(Redis):
-        def __init__(self, host='localhost', port=6379,
-                        db=0, password=None, socket_timeout=None, connection_pool=None,
-                        charset='utf-8', errors='strict', useATDB=False):
-            super(RegularRedis, self).__init__(host, port, db, password, socket_timeout, connection_pool, charset, errors)
-    Redis = RegularRedis
-    redis.Redis = RegularRedis
-    redisClient = Redis(cfgDict['redis']['redisHost'])
-else:
-    # Ensure that AT always gets on the right DB, whether they import redis, Redis, or redisClient.
-    dbNum = int(os.environ["USER"][-1]) + REDIS_NUM_DBS
-    class ATRedis(Redis):
-        def __init__(self, host='localhost', port=6379,
-                        db=0, password=None, socket_timeout=None, connection_pool=None,
-                        charset='utf-8', errors='strict', useATDB=True):
-            if useATDB:
-                db = dbNum
-            super(ATRedis, self).__init__(host, port, db, password, socket_timeout, connection_pool, charset, errors)
-
-    Redis = ATRedis
-    redis.Redis = ATRedis
-    redisClient = Redis(cfgDict['redis']['redisHost'])
-
-
+class RegularRedis(Redis):
+    def __init__(self, host='localhost', port=6379,
+                    db=0, password=None, socket_timeout=None, connection_pool=None,
+                    charset='utf-8', errors='strict', useATDB=False):
+        super(RegularRedis, self).__init__(host, port, db, password, socket_timeout, connection_pool, charset, errors)
+Redis = RegularRedis
+redis.Redis = RegularRedis
+redisClient = Redis(os.environ.get("REDIS_HOST", "localhost"))
 
 KEY_REPLACEMENTS = ([" ", "(", ")", "[", "]"], ["%20", "%28", "%29", "%5b", "%5d"])
 
